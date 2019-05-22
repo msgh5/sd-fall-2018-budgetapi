@@ -114,6 +114,65 @@ namespace WebAPIBudget.Controllers
             };
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("forgotpassword")]
+        public async Task<IHttpActionResult> ForgotPassword(ForgotPasswordBindingModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await UserManager.FindByNameAsync(model.Email);
+
+                if (user == null)
+                {
+                    return Ok();
+                }
+
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please use the following code to reset your password: " + code);
+                return Ok();
+            }
+
+            return BadRequest(ModelState);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("resetpassword")]
+        public async Task<IHttpActionResult> ResetPassword(ResetPasswordBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await UserManager.FindByNameAsync(model.Email);
+
+            if (user == null)
+            {
+                return Ok();
+            }
+
+            var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+
+            AddErrors(result);
+
+            return BadRequest(ModelState);
+        }
+
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error);
+            }
+        }
+
         // POST api/Account/ChangePassword
         [Route("ChangePassword")]
         public async Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModel model)

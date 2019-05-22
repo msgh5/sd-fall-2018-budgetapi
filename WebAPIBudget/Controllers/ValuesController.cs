@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,6 +14,8 @@ namespace WebAPIBudget.Controllers
         // GET api/values
         public IEnumerable<string> Get()
         {
+            var userId = User.Identity.GetUserId();
+
             return new string[] { "value1", "value2" };
         }
 
